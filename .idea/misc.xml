@@ -3,4 +3,5 @@
   <component name="Black">
     <option name="sdkName" value="C:\Program Files\Miniconda" />
   </component>
+  <component name="ProjectRootManager" version="2" project-jdk-name="pytorch" project-jdk-type="Python SDK" />
 </project>

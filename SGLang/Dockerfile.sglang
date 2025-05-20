@@ -1,0 +1,22 @@
+FROM pytorch/pytorch:2.2.2-cuda12.1-cudnn8-runtime
+
+WORKDIR /app
+
+# 安装基础工具
+RUN apt update && apt install -y git
+
+# 安装 Python 包
+RUN pip install --upgrade pip
+
+# 安装核心依赖
+RUN pip install torch==2.2.2 transformers==4.51.3 sentencepiece accelerate
+
+# 安装 sglang（会自动安装 vllm）
+RUN pip install "sglang[serve]" --extra-index-url https://download.pytorch.org/whl/cu121
+
+# 默认工作目录
+WORKDIR /app/sglang_app
+
+EXPOSE 8000
+
+CMD ["sglang", "serve", "app:app", "--port", "8000"]
