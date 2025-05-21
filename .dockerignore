@@ -1,0 +1,21 @@
+# 不把 Git 元数据打进镜像
+.git
+.gitignore
+
+# Python 编译与缓存
+__pycache__/
+*.py[cod]
+
+# 大模型权重与数据集
+*.pt
+*.safetensors
+datasets/
+
+# 日志和临时文件
+logs/
+*.log
+tmp/
+
+# IDE/编辑器配置
+.vscode/
+.idea/
