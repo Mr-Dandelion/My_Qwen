@@ -1,0 +1,15 @@
+# unsloth==2025.5.7  (已注释或删除)
+# unsloth_zoo==2025.5.8 (已注释或删除)
+deepspeed
+accelerate
+torch
+torchvision
+transformers>=4.38.0  # 建议明确版本, Qwen-VL可能需要较新版
+datasets>=2.14.0
+trl>=0.7.0
+peft>=0.9.0
+sentencepiece       # Qwen等模型的分词器通常需要
+Pillow              # 图像处理
+bitsandbytes
+# protobuf
+# tensorboard       # 如果用于日志记录
