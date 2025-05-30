@@ -15,6 +15,7 @@ from peft import LoraConfig, get_peft_model
 from trl import SFTConfig, SFTTrainer
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor, BitsAndBytesConfig
 import os
+import sys
 import deepspeed
 
 def extract_question(raw_text: str) -> str:
@@ -30,7 +31,7 @@ def format_data_spacethinker(sample):
             {
                 "type": "text",
                 "text": (
-                    "You are VL-Thinking U+1F914, a helpful assistant with excellent reasoning ability.\n"
+                    "You are SpacilVLM, a helpful assistant with excellent reasoning ability.\n"
                     "A user asks you a question, and you should try to solve it."
                     "You should first think about the reasoning process in the mind and then provides the user with the answer.\n"
                     "The reasoning process and answer are enclosed within <think></think> and <answer></answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>."
@@ -76,15 +77,10 @@ def collate_fn(examples, processor):
                     if 'image' in current_part and current_part.get('image') is None:
                         del current_part['image']
                     new_message_content_parts.append(current_part)
-
-
                 elif current_part.get('type') == 'image':
-
                     image_data = current_part.get('image')
-
                     if image_data is None:
                         continue
-                    # --- 新增的图像转换逻辑 ---
                     if isinstance(image_data, dict) and 'bytes' in image_data:
                         try:
                             pil_image = Image.open(BytesIO(image_data['bytes']))
@@ -95,7 +91,6 @@ def collate_fn(examples, processor):
                     elif not isinstance(image_data, Image.Image):  # 如果不是字典也不是PIL Image，则可能是qwen_vl_utils无法处理的类型
                         print(f"警告: 未知的图像数据类型 {type(image_data)}。跳过此图像。")
                         continue
-                    # --- 图像转换逻辑结束 ---
                     if 'text' in current_part and current_part.get('text') is None:
                         del current_part['text']
                     new_message_content_parts.append(current_part)
@@ -152,11 +147,11 @@ class TrainingConfig:
     lora_r: int = 128
     lora_alpha: int = 256
     lora_dropout: float = 0.05
-    target_modules: List[str] = field(default_factory=lambda: ["q_proj", "v_proj", "k_proj"])
-    num_train_epochs: int = 3
-    train_batch_size: int = 1
-    eval_batch_size: int = 1
-    gradient_accumulation_steps: int = 8
+    target_modules: List[str] = field(default_factory=lambda: ["q_proj", "v_proj", "k_proj", "o_proj"])
+    num_train_epochs: int = 1
+    train_batch_size: int = 2
+    eval_batch_size: int = 2
+    gradient_accumulation_steps: int = 4
     learning_rate: float = 2e-5
     output_dir: str = "/home/lanfeng/Checkpoints/Qwen2.5VL-7B-lora"
     deepspeed_config: str = field(default=None,
@@ -223,7 +218,7 @@ def prepare_datasets(cfg: TrainingConfig):
 def prepare_model_and_optimizer(cfg: TrainingConfig):
     processor = AutoProcessor.from_pretrained(
         cfg.model_id,
-        trust_remote_code=True  # Qwen 系列模型通常需要此参数
+        trust_remote_code=True
     )
     bnb = BitsAndBytesConfig(
         load_in_4bit=True,
@@ -231,9 +226,8 @@ def prepare_model_and_optimizer(cfg: TrainingConfig):
         bnb_4bit_quant_type="nf4",
         bnb_4bit_compute_dtype=torch.float16
     )
-    #with deepspeed.zero.Init(config_dict_or_path=cfg.deepspeed_config):
     device_to_load_on = cfg.local_rank
-    if cfg.local_rank == -1:  # Fallback for non-distributed or if local_rank isn't set
+    if cfg.local_rank == -1:
         if torch.cuda.is_available():
             device_to_load_on = "cuda"  # 或者 "cuda:0"
         else:
@@ -245,7 +239,7 @@ def prepare_model_and_optimizer(cfg: TrainingConfig):
         trust_remote_code=True,
         quantization_config=bnb,
         low_cpu_mem_usage=True,
-        device_map=device_to_load_on  # <--- 使用获取到的 local_rank
+        device_map=device_to_load_on
     )
     peft_cfg = LoraConfig(
         r=cfg.lora_r,
@@ -258,13 +252,11 @@ def prepare_model_and_optimizer(cfg: TrainingConfig):
 
     model = get_peft_model(model, peft_cfg)
     model.print_trainable_parameters()  # 打印可训练参数信息
-
     return model, processor, peft_cfg
 
 
 
 def main():
-    print(f"Transformers version: {transformers.__version__}")
     cfg = parse_args()
     raw_train_ds, raw_eval_ds = prepare_datasets(cfg)
     print('finished loading datasets')
@@ -278,21 +270,21 @@ def main():
         "gradient_accumulation_steps": cfg.gradient_accumulation_steps,
         "learning_rate": cfg.learning_rate,
         "logging_steps": 10,
-        "eval_steps": 100,  # 调整评估频率
-        "save_steps": 200,  # 调整保存频率
-        "eval_strategy": "steps",  # 或者 "epoch"
-        "save_strategy": "steps",  # 或者 "epoch"
+        "eval_steps": 100,
+        "save_steps": 200,
+        "eval_strategy": "steps",
+        "save_strategy": "steps",
         "metric_for_best_model": "eval_loss",
         "greater_is_better": False,
         "load_best_model_at_end": True,
-        "fp16": True,  # 如果DeepSpeed配置中也启用fp16
-        "max_grad_norm": 0.3,  # 与DeepSpeed配置协调
+        "fp16": True,
+        "max_grad_norm": 0.3,
         "gradient_checkpointing": True,
-        "gradient_checkpointing_kwargs": {"use_reentrant": False},  # PyTorch推荐
-        "lr_scheduler_type": "cosine",  # 例如 'cosine' 或 'linear'
-        "warmup_ratio": 0.03,  # 学习率预热比例
+        "gradient_checkpointing_kwargs": {"use_reentrant": False},
+        "lr_scheduler_type": "cosine",
+        "warmup_ratio": 0.03,
         "logging_dir": f"{cfg.output_dir}/logs",
-        "save_total_limit": 2,  # 最多保存的checkpoint数量
+        "save_total_limit": 2,
         "remove_unused_columns": False,
     }
 
