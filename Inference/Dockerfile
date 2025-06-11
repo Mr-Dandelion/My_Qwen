@@ -23,4 +23,5 @@ ENTRYPOINT ["python", "main.py"]
 CMD ["--base_model_path", "/app/models/base_model", \
      "--adapter_path", "/app/models/adapter", \
      "--image_path", "/app/default_image.jpg", \
+     "--csv_path", "/app/messages.csv", \
      "--prompt", "Describe this image."]

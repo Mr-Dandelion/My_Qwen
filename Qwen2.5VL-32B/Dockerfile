@@ -44,7 +44,7 @@ COPY train.py .
 
 # ENV 和 CMD
 ENV MODEL_DIR=/mnt/models/Qwen2.5VL \
-    DATA_DIR=/mnt/Datasets/SpaceThinker \
+    DATA_DIR=/mnt/Datasets/SpaceThinker_nonum \
     OUTPUT_DIR=/mnt/Checkpoints/Qwen2.5VL-lora \
     WANDB_MODE=offline \
     DS_CONFIG_PATH=/workspace/ds_config.json

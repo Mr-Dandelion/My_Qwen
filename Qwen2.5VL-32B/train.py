@@ -1,5 +1,3 @@
-#from pydantic.experimental.pipeline import transform
-#from unsloth import FastLanguageModel
 import re
 import argparse
 from dataclasses import dataclass, field
@@ -9,10 +7,10 @@ from io import BytesIO
 import torch
 from tqdm import tqdm
 from datasets import load_dataset, Dataset
-import transformers
 from qwen_vl_utils import process_vision_info
 from peft import LoraConfig, get_peft_model
 from trl import SFTConfig, SFTTrainer
+import trl
 from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor, BitsAndBytesConfig
 import os
 import sys
@@ -31,10 +29,17 @@ def format_data_spacethinker(sample):
             {
                 "type": "text",
                 "text": (
-                    "You are SpacilVLM, a helpful assistant with excellent reasoning ability.\n"
-                    "A user asks you a question, and you should try to solve it."
-                    "You should first think about the reasoning process in the mind and then provides the user with the answer.\n"
-                    "The reasoning process and answer are enclosed within <think></think> and <answer></answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>."
+                    # "You are SpacilVLM, a helpful assistant with excellent reasoning ability.\n"
+                    # "A user asks you a question, and you should try to solve it."
+                    # "You should first think about the reasoning process in the mind and then provides the user with the answer.\n"
+                    # "The reasoning process and answer are enclosed within <think></think> and <answer></answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>."
+
+                    "你是一个能判别物体方向的智能助手。用户可能会向你咨询一些人物或者车辆的运动方向。\n"
+                    "你应该这样推理：首先在图中定位目标，若找不到目标，则回答‘未找到目标’。若找到目标，"
+                    "则尽可能详细地描述目标特征以及周围环境，并根据这些细节信息进行推理，最后回答用户的问题。\n"
+                    "你需要根据图中的细节进行推断，注意不要凭空捏造线索和答案，如实回答问题。\n"
+                    "最后推理出的answer只能从以下八个方向中选择一个：正对镜头、背对镜头、镜头左边、镜头右边、镜头左前方、镜头右前方、镜头左后方、镜头右后方。\n"
+                    "推理过程和答案分别包含在<think></think>和<answer></answer>标签中，例如：<think>这里是思考过程</think> <answer>这里是回答</answer>."
                 )
             }
         ]
@@ -119,6 +124,10 @@ def collate_fn(examples, processor):
              return {}
 
     batch = processor(text=texts, images=image_batches, return_tensors="pt", padding=True)
+    max_len = processor.tokenizer.model_max_length  # 一般是 2048 或 4096，取决于模型
+    for idx, input_ids in enumerate(batch["input_ids"]):
+        if input_ids.shape[0] > max_len:
+            print(f"[警告] 第 {idx} 个样本 tokens 长度 {input_ids.shape[0]} 超过最大长度 {max_len}")
     batch = {k: v.cpu() for k, v in batch.items()}
 
     if not batch:
@@ -143,16 +152,17 @@ def collate_fn(examples, processor):
 @dataclass
 class TrainingConfig:
     model_id: str = "/home/lanfeng/models/Qwen2.5-VL-7B-Instruct"
-    dataset_id: str = "/home/lanfeng/Datasets/SpaceThinker"
+    dataset_id: str = "/home/lanfeng/Datasets/SpaceThinker_nonum"
     lora_r: int = 128
     lora_alpha: int = 256
-    lora_dropout: float = 0.05
-    target_modules: List[str] = field(default_factory=lambda: ["q_proj", "v_proj", "k_proj", "o_proj"])
+    lora_dropout: float = 0.03
+    target_modules: List[str] = field(default_factory=lambda:
+    ["q_proj", "v_proj", "k_proj", "o_proj", "qkv", "proj"])
     num_train_epochs: int = 1
-    train_batch_size: int = 2
-    eval_batch_size: int = 2
-    gradient_accumulation_steps: int = 4
-    learning_rate: float = 2e-5
+    train_batch_size: int = 1
+    eval_batch_size: int = 1
+    gradient_accumulation_steps: int = 8
+    learning_rate: float = 1e-5
     output_dir: str = "/home/lanfeng/Checkpoints/Qwen2.5VL-7B-lora"
     deepspeed_config: str = field(default=None,
                                   metadata={"help": "Path to the DeepSpeed config file (e.g., ds_config.json)."})
@@ -229,7 +239,7 @@ def prepare_model_and_optimizer(cfg: TrainingConfig):
     device_to_load_on = cfg.local_rank
     if cfg.local_rank == -1:
         if torch.cuda.is_available():
-            device_to_load_on = "cuda"  # 或者 "cuda:0"
+            device_to_load_on = "cuda"
         else:
             device_to_load_on = "cpu"
 
@@ -251,7 +261,9 @@ def prepare_model_and_optimizer(cfg: TrainingConfig):
     )
 
     model = get_peft_model(model, peft_cfg)
-    model.print_trainable_parameters()  # 打印可训练参数信息
+    # print(model)
+    # sys.exit()
+    model.print_trainable_parameters()
     return model, processor, peft_cfg
 
 
@@ -270,8 +282,9 @@ def main():
         "gradient_accumulation_steps": cfg.gradient_accumulation_steps,
         "learning_rate": cfg.learning_rate,
         "logging_steps": 10,
-        "eval_steps": 100,
-        "save_steps": 200,
+        "eval_steps": 50,
+        "save_steps": 50,
+        "max_steps": 100,
         "eval_strategy": "steps",
         "save_strategy": "steps",
         "metric_for_best_model": "eval_loss",
