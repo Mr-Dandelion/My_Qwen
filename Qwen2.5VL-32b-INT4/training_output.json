@@ -1,0 +1,405 @@
+[
+    {
+        "image": "./醉酒/119mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "耳朵发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/133mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸颊发红，双眼发直\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/138mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸颊发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/99.15mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/124毫克100毫升.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼睛充血，皮肤泛红，表情迷糊。\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/390mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "皮肤泛红，眼神迷糊\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/120mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼皮沉重，皮肤微微泛红，表情呆滞。\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/85毫克-100毫升.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色发红，精神迷离\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/106.4mg-100ml.bmp",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/130mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸颊发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/106mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼白发红，脸色微红，眼神呆\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/111.9mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼白发红，双眼无神\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/234mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "皮肤泛红，眼神迷糊\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/106mg--100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼白发红，脸色微红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/83mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "皮肤发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/85mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色发红，双眼呆滞\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/215.81mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "皮肤泛红，眼神呆滞\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/137mg100mL (2).jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/93mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "面部微红，眼皮下垂，表情呆滞，耳朵很红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/225mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "皮肤泛红，眼神迷糊\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/169mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色、眼白发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/201mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼白泛红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/96mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼白发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/90.3mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼白、耳朵、脸颊发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/134.0mg100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "双眼无神\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/119mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼皮稍显沉重，皮肤泛红，表情呆滞，耳朵通红。\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/90mg-100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "稍显发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/22.5mg-100ml.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "脸色、耳朵发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/191mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "双眼呆滞，眼白泛红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/174毫克100毫升.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "眼神呆滞，眼白发红\n醉酒了"
+            }
+        ]
+    },
+    {
+        "image": "./醉酒/97mg100mL.jpg",
+        "conversations": [
+            {
+                "from": "human",
+                "value": "<image>\n这个人醉酒了吗？"
+            },
+            {
+                "from": "gpt",
+                "value": "双眼无神、呆滞；皮肤泛红\n醉酒了"
+            }
+        ]
+    }
+]
