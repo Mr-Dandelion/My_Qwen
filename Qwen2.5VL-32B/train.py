@@ -6,12 +6,13 @@ from PIL import Image
 from io import BytesIO
 import torch
 from tqdm import tqdm
+import pandas as pd
 from datasets import load_dataset, Dataset
 from qwen_vl_utils import process_vision_info
 from peft import LoraConfig, get_peft_model
-from trl import SFTConfig, SFTTrainer
-import trl
-from transformers import Qwen2_5_VLForConditionalGeneration, AutoProcessor, BitsAndBytesConfig
+from trl import SFTConfig, SFTTrainer, PPOConfig, PPOTrainer, AutoModelForCausalLMWithValueHead
+from transformers import (Qwen2_5_VLForConditionalGeneration, AutoProcessor,
+                          BitsAndBytesConfig, AutoTokenizer)
 import os
 import sys
 import deepspeed
@@ -22,24 +23,22 @@ def extract_question(raw_text: str) -> str:
     return m.group(1).strip() if m else raw_text.strip()
 
 
-def format_data_spacethinker(sample):
+def format_data(sample):
     system_message = {
         "role": "system",
         "content": [
             {
                 "type": "text",
                 "text": (
-                    # "You are SpacilVLM, a helpful assistant with excellent reasoning ability.\n"
-                    # "A user asks you a question, and you should try to solve it."
-                    # "You should first think about the reasoning process in the mind and then provides the user with the answer.\n"
-                    # "The reasoning process and answer are enclosed within <think></think> and <answer></answer> tags, respectively, i.e., <think> reasoning process here </think> <answer> answer here </answer>."
-
-                    "你是一个能判别物体方向的智能助手。用户可能会向你咨询一些人物或者车辆的运动方向。\n"
-                    "你应该这样推理：首先在图中定位目标，若找不到目标，则回答‘未找到目标’。若找到目标，"
-                    "则尽可能详细地描述目标特征以及周围环境，并根据这些细节信息进行推理，最后回答用户的问题。\n"
-                    "你需要根据图中的细节进行推断，注意不要凭空捏造线索和答案，如实回答问题。\n"
-                    "最后推理出的answer只能从以下八个方向中选择一个：正对镜头、背对镜头、镜头左边、镜头右边、镜头左前方、镜头右前方、镜头左后方、镜头右后方。\n"
-                    "推理过程和答案分别包含在<think></think>和<answer></answer>标签中，例如：<think>这里是思考过程</think> <answer>这里是回答</answer>."
+                    "你是一个智能摄像头，能站在摄像头的视角判别物体方向。用户可能会向你咨询一些人物或者车辆的运动方向或静态朝向。\n"
+                    "你应该这样推理：首先在图中定位目标，若找不到目标，则回答‘未找到目标’。若找到目标，则描述与方向判断相关的关键特征以及周围环境，并根据这些细节信息进行推理，最后回答用户的问题。\n"
+                    "注意！ 你需要根据摄像头的视角进行推理，并根据图中的细节进行推断，不要凭空捏造线索和答案，如实回答问题。\n"
+                    "视角与方向定义如下：坐标系: 站在摄像头的视角，如果一个物体正面朝向镜头（如面部或车头灯），说明它是朝向后方（即朝向镜头背后的世界）。"
+                    "如果一个物体背对镜头（如后脑勺或车尾），说明它是朝向前方（即朝着镜头视野延伸的方向）。判断基准: 方向的判断基于目标自身的姿态和运动趋势，"
+                    "而不是其在画面中的位置。如果图像中有明确的运动线索（例如，迈开的步伐、车轮滚动、运动模糊），则应判断其运动方向。\n"
+                    "推理过程和答案分别包含在<think></think>和<answer></answer>标签中，例如：<think>这里是思考过程</think> <answer>这里是回答</answer>。\n"
+                    "回答要根据思考的内容得出，不要出现回答和思考相矛盾的情况，比如思考里已经总结方向是朝向后方的，但是答案仍说是朝向前方。\n"
+                    "除 <think></think> 与 <answer></answer> 外，不得输出任何文字或标点。\n"
                 )
             }
         ]
@@ -52,7 +51,7 @@ def format_data_spacethinker(sample):
         user_msg["content"].append({"type": "text", "text": question})
     images = sample.get("images") or []
     if images:
-        user_msg["content"].append({"type": "image", "image": images[0]})
+        user_msg["content"].append({"type": "image", "image": images})
     formatted.append(user_msg)
 
     if sample.get("output"):
@@ -152,7 +151,9 @@ def collate_fn(examples, processor):
 @dataclass
 class TrainingConfig:
     model_id: str = "/home/lanfeng/models/Qwen2.5-VL-7B-Instruct"
-    dataset_id: str = "/home/lanfeng/Datasets/SpaceThinker_nonum"
+    dataset_id: str = "/home/lanfeng/Datasets/My_SFT"
+    image_root: str = "camera_cropped"
+    messages_file: str = "messages.csv"
     lora_r: int = 128
     lora_alpha: int = 256
     lora_dropout: float = 0.03
@@ -161,7 +162,7 @@ class TrainingConfig:
     num_train_epochs: int = 1
     train_batch_size: int = 1
     eval_batch_size: int = 1
-    gradient_accumulation_steps: int = 8
+    gradient_accumulation_steps: int = 1
     learning_rate: float = 1e-5
     output_dir: str = "/home/lanfeng/Checkpoints/Qwen2.5VL-7B-lora"
     deepspeed_config: str = field(default=None,
@@ -174,6 +175,8 @@ def parse_args() -> TrainingConfig:
     parser = argparse.ArgumentParser(description="Train a VL Spacethinker model with LoRA")
     parser.add_argument("--model_id", default=default_cfg.model_id)
     parser.add_argument("--dataset_id", default=default_cfg.dataset_id)
+    parser.add_argument("--image_root", default=default_cfg.image_root )
+    parser.add_argument("--messages_file", default=default_cfg.messages_file)
     parser.add_argument("--lora_r", type=int, default=default_cfg.lora_r)
     parser.add_argument("--lora_alpha", type=int, default=default_cfg.lora_alpha)
     parser.add_argument("--lora_dropout", type=float, default=default_cfg.lora_dropout)
@@ -198,6 +201,8 @@ def parse_args() -> TrainingConfig:
     return TrainingConfig(
         model_id=args.model_id,
         dataset_id=args.dataset_id,
+        image_root=args.image_root,
+        messages_file=args.messages_file,
         lora_r=args.lora_r,
         lora_alpha=args.lora_alpha,
         lora_dropout=args.lora_dropout,
@@ -212,16 +217,40 @@ def parse_args() -> TrainingConfig:
         local_rank=args.local_rank,
     )
 
+def build_output(row) -> str:
+    thinking = str(row.get("thinking", "")).strip()
+    answer   = str(row.get("answer", "")).strip()
+    has_thinking = (thinking != "") and (not (thinking.lower() in {"nan", "none"}))
+    if has_thinking:
+        return f"<think>{thinking}</think>\n<answer>{answer}</answer>"
+    else:
+        return f"<answer>{answer}</answer>"
+
+
 
 def prepare_datasets(cfg: TrainingConfig):
-    raw_train_hf_dataset = load_dataset(cfg.dataset_id, split="train")
-    raw_eval_hf_dataset = load_dataset(cfg.dataset_id, split="test")
-    formatted_train_data = [{"messages": format_data_spacethinker(s), "input_ids": []} # 添加 "input_ids": []
-                            for s in tqdm(raw_train_hf_dataset, desc="Train")]
-    train_ds = Dataset.from_list(formatted_train_data)
-    formatted_eval_data = [{"messages": format_data_spacethinker(s), "input_ids": []} # 添加 "input_ids": []
-                           for s in tqdm(raw_eval_hf_dataset, desc="Eval")]
-    eval_ds = Dataset.from_list(formatted_eval_data)
+    try:
+        df = pd.read_csv(os.path.join(cfg.dataset_id, cfg.messages_file), keep_default_na=False, encoding="utf-8")
+    except UnicodeDecodeError:
+        print("[INFO] 不是 UTF-8，改用 GBK 打开 …")
+        df = pd.read_csv(os.path.join(cfg.dataset_id, cfg.messages_file), keep_default_na=False, encoding="gbk")
+
+    df = df.rename(columns={"question": "input"})
+    df["output"] = df.apply(build_output, axis=1)
+    def to_image(item):
+        path = os.path.join(cfg.dataset_id, cfg.image_root, f"{item}.jpg")  # 按需改扩展名
+        return Image.open(path).convert("RGB") if os.path.exists(path) else None
+    df["images"] = df["file"].apply(to_image)
+    records = df[["input", "output", "images"]].to_dict(orient="records")
+    split_idx = int(len(records) * 0.9)
+    train_ds = Dataset.from_list([
+        {"messages": format_data(r), "input_ids": []}
+        for r in tqdm(records[:split_idx], desc="Train")
+    ])
+    eval_ds   = Dataset.from_list([
+        {"messages": format_data(r), "input_ids": []}
+        for r in tqdm(records[split_idx:], desc="Eval")
+    ])
     return train_ds, eval_ds
 
 
@@ -261,8 +290,6 @@ def prepare_model_and_optimizer(cfg: TrainingConfig):
     )
 
     model = get_peft_model(model, peft_cfg)
-    # print(model)
-    # sys.exit()
     model.print_trainable_parameters()
     return model, processor, peft_cfg
 
@@ -314,8 +341,6 @@ def main():
         args=training_args,
         train_dataset=raw_train_ds,  # 使用原始的训练数据集
         eval_dataset=raw_eval_ds,
-        #formatting_func=format_data_spacethinker,
-        #tokenizer=processor.tokenizer,
         peft_config=peft_cfg,
         data_collator=lambda data: collate_fn(data, processor),
     )
