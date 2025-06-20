@@ -11,6 +11,7 @@ from qwen_vl_utils import process_vision_info
 import csv
 import re
 import traceback
+import glob
 
 SYSTEM_PROMPT = (
     "你是一个智能摄像头，能站在摄像头的视角判别物体方向。用户可能会向你咨询一些人物或者车辆的运动方向或静态朝向。\n"
@@ -32,6 +33,10 @@ SYSTEM_PROMPT = (
     "6.prompt：图中打黑色雨伞的人正朝哪里走？ think：可以看到，打黑色雨伞的人位于图片的右下角，穿着粉色的衣服。从图中可以看到她的右手臂向前弯曲拿着雨伞，根据人类肘关节的运动方向，肘关节只能向前弯曲不能向后弯曲，因此她应该是面朝着镜头移动，又只能观察到她的右手臂，所以她是向着镜头的右后方移动。 answer：朝向右后方\n"
     "7.prompt：灰色面包车车头朝向哪里？ think：灰色面包车位于画面中部偏上的部分，从镜头中可以清晰地看见它的车尾，甚至连车牌都十分清晰。从图像中还能看见面包车的左侧面。综上所述，灰色面包车朝向镜头的左前方。 answer：朝向左前方\n"
     "8.prompt：灰色轿车的车头朝哪？ think：灰色轿车位于图像的右侧部分，可以清楚看到车头的车头灯、车牌、车标和驾驶室，除此之外，还能看见车的左前轮。根据位置关系，灰色轿车的车头是朝向画面左后方的。 answer：朝向左后方"
+
+    # "把图片视为笛卡尔坐标系的第一象限，图片左下角视为原点（0，0）。你需要根据用户提出的问题，判断目标的方向或朝向。判断结果用向量表示。比如：目标面朝画面左侧，向量为（-1，0）；目标面对画面右上方，向量为（1，1）；以此类推。\n"
+    # "如果没有发现目标或者无法判断，则回答'未发现目标'或'无法判断'。\n"
+    # "推理过程和答案分别包含在<think></think>和<answer></answer>标签中，例如：<think>这里是思考过程</think> <answer>这里是回答</answer>。\n"
 )
 
 def load_image(image_path: str) -> Image.Image:
@@ -44,6 +49,21 @@ def load_image(image_path: str) -> Image.Image:
             raise FileNotFoundError(f"错误: 图像文件未找到 {image_path}")
         img = Image.open(image_path)
     return img.convert("RGB")
+
+
+def find_image_file(base_dir, image_name):
+    # 支持的图像扩展名（按优先级排列）
+    extensions = ['.jpg', '.jpeg', '.png', '.bmp', '.webp']
+    for ext in extensions:
+        candidate = os.path.join(base_dir, image_name + ext)
+        if os.path.isfile(candidate):
+            return candidate
+    # 如果没有找到，尝试用 glob 模糊查找
+    pattern = os.path.join(base_dir, image_name + '.*')
+    matches = glob.glob(pattern)
+    if matches:
+        return matches[0]  # 返回第一个匹配的
+    return None
 
 def run_inference_from_csv(base_model_path: str, adapter_path: str,
                            csv_path: str, device: str = "auto"):
@@ -77,7 +97,10 @@ def run_inference_from_csv(base_model_path: str, adapter_path: str,
             image_name = row.get("file", "").strip()
             prompt = row.get("question", "").strip()
 
-            image_path = os.path.join("/data/camera_cropped", image_name + ".jpg")
+            image_path = find_image_file("/data/camera_cropped", image_name)
+            if not image_path:
+                print(f"❌ 图像未找到: {image_name}")
+                continue
             try:
                 print(f"\n=== 处理第 {idx + 1} 行: 图像={image_path}, 问题={prompt} ===")
                 pil_image = load_image(image_path)
@@ -103,6 +126,7 @@ def run_inference_from_csv(base_model_path: str, adapter_path: str,
                         do_sample=False,
                     )
                     response = processor.batch_decode(generated_ids, skip_special_tokens=True)[0]
+                    #print(response)
                 think_matches = re.findall(r"<think>\s*(.*?)\s*</think>", response, re.IGNORECASE | re.DOTALL)
                 answer_matches = re.findall(r"<answer>\s*(.*?)\s*</answer>", response, re.IGNORECASE | re.DOTALL)
                 think_text = think_matches[-1].strip() if think_matches else ""
