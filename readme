@@ -1,8 +1,4 @@
-you can use this repo to post-train or infer qwen2.5-vl
-
-# My_Qwen - 通义千问本地化部署 WebUI
-
-这是一个用于在您自己的计算机上本地部署阿里云通义千问（Qwen）大语言模型的项目。通过本项目，您可以轻松启动一个基于 Gradio 的 Web 交互界面，与 Qwen 模型进行对话。
+# My_Qwen - 通义千问本地训练与推理
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Transformers](https://img.shields.io/badge/🤗-Transformers-yellow.svg)](https://github.com/huggingface/transformers)
@@ -12,7 +8,7 @@ you can use this repo to post-train or infer qwen2.5-vl
 
 ## 📖 项目简介
 
-本项目旨在简化通义千问（Qwen）系列模型（如 Qwen-1.8B-Chat, Qwen-7B-Chat 等）的本地化运行流程。您无需复杂的环境配置，即可在本地拥有一个私有、免费的大模型聊天应用。
+本项目旨在简化通义千问（Qwen）系列模型（如 Qwen3, Qwen2.5-VL 等）的本地化运行流程。您无需复杂的环境配置，即可在本地拥有一个私有、免费的大模型聊天应用。
 
 ## ✨ 主要特性
 
