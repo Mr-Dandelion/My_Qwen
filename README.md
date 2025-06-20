@@ -1,5 +1,4 @@
-[![Anurag's GitHub stats](https://github-readme-stats.vercel.app/api?username=你的用户名&show_icons=true&theme=radical)](https://github.com/anuraghazra/github-readme-stats)
-[![Top Langs](https://github-readme-stats.vercel.app/api/top-langs/?username=你的用户名&layout=compact&theme=vision-friendly-dark)](https://github.com/anuraghazra/github-readme-stats)
+
 <p align="left">
   <a href="https://skillicons.dev">
     <img src="https://skillicons.dev/icons?i=js,html,css,react,nodejs,python" />
@@ -15,8 +14,16 @@
 # My_Qwen - 通义千问本地训练与推理
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
+[![Qwen2.5-VL](https://img.shields.io/badge/Base%20Model-Qwen2.5--VL-purple)](https://huggingface.co/Qwen/Qwen2.5-7B-VL-Instruct)
 [![Transformers](https://img.shields.io/badge/🤗-Transformers-yellow.svg)](https://github.com/huggingface/transformers)
-[![Gradio](https.img.shields.io/badge/Gradio-orange)](https://gradio.app/)
+[![PyTorch](https://img.shields.io/badge/PyTorch-%23EE4C2C.svg?logo=pytorch&logoColor=white)](https://pytorch.org/)
+[![PEFT](https://img.shields.io/badge/PEFT-Parameter--Efficient-green)](https://github.com/huggingface/peft)
+[![TRL](https://img.shields.io/badge/TRL-Transformer%20Reinforcement%20Learning-blue)](https://github.com/huggingface/trl)
+[![DeepSpeed](https://img.shields.io/badge/DeepSpeed-42A5F5logo=microsoft&logoColor=white)](https://www.deepspeed.ai/)
+[![BitsAndBytes](https://img.shields.io/badge/BitsAndBytes-4--bit%20Quantization-lightgrey)](https://github.com/TimDettmers/bitsandbytes)
+![Gradio Badge](https://img.shields.io/badge/Gradio-orange)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
 
 
